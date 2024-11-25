@@ -6,8 +6,8 @@ app.use(express.json());
 
 // Variables de configuración
 const PORT = process.env.PORT || 3000; // Render asignará el puerto automáticamente
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "Vyzo123"; // Token de verificación para Meta
-const PAGE_ACCESS_TOKEN = "EAANBHbiVEN0BO5YkcPXKi5ZCb72IJdrvl4ZAAZAZCR4V2jUsyBBMZCEKQsVhhvKZBbNaIjLzTtmW5cChyb2DqqUMBqvllQ4fjvoELEcvTZByYrbhiFaUFzVCXExqGKouw8lJtVuZCcNvDdrEfHhFZBLbzfwsCx2HMxePPQi57QreZCIRDLznVZBmPZB2k1RIalBee8c2WLq3WnAIDP4NZAYoZD"; // Token de acceso de página de Meta
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "vyzo"; // Token de verificación para Meta
+const PAGE_ACCESS_TOKEN = "EAANBHbiVEN0BOwWDlEH2kguEhKu8ePHZAaymH4hrCkP3aawZBCZAPNyDKHWflPPzCI4dGRIc3HBfk5roqIMAIPhjBNhNL1uUr0y3vVfVBeGbsUkgEAg0rjBPKj6NcskFRxgH6uscZAJPuWrYCfqVYq0xW1GZAp6hpYcrEncjCgcLKF8LQvYgWLvUZA8jbUtCfYALJmAynyWGWZAU2kZD"; // Token de acceso de página de Meta
 const OPENAI_API_KEY = "sk-svcacct-_sNLowu_zUNFlaDHQ7W2fMluIFhV7kXm1AEkQwO_OTbDqu0i4ImbHV9xfQLwzymT3BlbkFJ80jg5mkOCHS4i2ODZiy8aJXuAarXlmcxE8mpzrJ611MOBI33mKT8EKqhXQMrpWAA"; // Clave de API de OpenAI
 
 // Endpoint para verificación del webhook
