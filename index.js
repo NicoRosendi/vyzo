@@ -8,7 +8,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000; // Render asignará el puerto automáticamente
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "Vyzo123"; // Token de verificación para Meta
 const PAGE_ACCESS_TOKEN = "8f0b04d1cf92f81a605f86921229ed38"; // Token de acceso de página de Meta
-const OPENAI_API_KEY = "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"; // Clave de API de OpenAI
+const OPENAI_API_KEY = "sk-svcacct-_sNLowu_zUNFlaDHQ7W2fMluIFhV7kXm1AEkQwO_OTbDqu0i4ImbHV9xfQLwzymT3BlbkFJ80jg5mkOCHS4i2ODZiy8aJXuAarXlmcxE8mpzrJ611MOBI33mKT8EKqhXQMrpWAA"; // Clave de API de OpenAI
 
 // Endpoint para verificación del webhook
 app.get("/webhook", (req, res) => {
