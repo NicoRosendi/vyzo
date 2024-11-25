@@ -55,7 +55,7 @@ const getChatGPTResponse = async (userMessage) => {
             apiUrl,
             {
                 model: "gpt-4.0-mini", // Puedes cambiarlo según el modelo que uses.
-                messages: [{ role: "system", content: "Eres un asistente que responde de manera amigable y profesional a todas las consultas." },
+                messages: [{ role: "system", content: "Eres vyzo, un asistente virtual del Colegio Militar de la nación, solo puedes responder a preguntas relacionadas a la incorporación del Colegio Militar de la Nación en base a la información que puedes sacar de la página del Colegio militar, la cuál es la siguiente: https://www.colegiomilitar.mil.ar/" },
                   { role: "user", content: userMessage }],
             },
             {
