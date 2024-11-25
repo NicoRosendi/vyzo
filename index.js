@@ -1,14 +1,15 @@
 const express = require("express");
 const axios = require("axios");
+require("dotenv").config();
 
 const app = express();
 app.use(express.json());
 
 // Variables de configuración
-const PORT = process.env.PORT || 3000; // Render asignará el puerto automáticamente
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "vyzo"; // Token de verificación para Meta
-const PAGE_ACCESS_TOKEN = "EAANBHbiVEN0BOwWDlEH2kguEhKu8ePHZAaymH4hrCkP3aawZBCZAPNyDKHWflPPzCI4dGRIc3HBfk5roqIMAIPhjBNhNL1uUr0y3vVfVBeGbsUkgEAg0rjBPKj6NcskFRxgH6uscZAJPuWrYCfqVYq0xW1GZAp6hpYcrEncjCgcLKF8LQvYgWLvUZA8jbUtCfYALJmAynyWGWZAU2kZD"; // Token de acceso de página de Meta
-const OPENAI_API_KEY = "sk-svcacct-_sNLowu_zUNFlaDHQ7W2fMluIFhV7kXm1AEkQwO_OTbDqu0i4ImbHV9xfQLwzymT3BlbkFJ80jg5mkOCHS4i2ODZiy8aJXuAarXlmcxE8mpzrJ611MOBI33mKT8EKqhXQMrpWAA"; // Clave de API de OpenAI
+const PORT = process.env.PORT || 3000;
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // Endpoint para verificación del webhook
 app.get("/webhook", (req, res) => {
@@ -17,33 +18,35 @@ app.get("/webhook", (req, res) => {
     const challenge = req.query["hub.challenge"];
 
     if (mode === "subscribe" && token === VERIFY_TOKEN) {
-        console.log("Webhook verificado.");
-        res.status(200).send(challenge);
-    } else {
-        res.sendStatus(403);
+        console.log("Webhook verificado exitosamente.");
+        return res.status(200).send(challenge);
     }
+    console.error("Fallo en la verificación del webhook.");
+    return res.sendStatus(403);
 });
 
 // Endpoint para recibir mensajes
 app.post("/webhook", async (req, res) => {
-    const body = req.body;
+    if (req.body.object === "page") {
+        try {
+            for (const entry of req.body.entry) {
+                const event = entry.messaging && entry.messaging[0];
+                if (event && event.message && event.message.text) {
+                    const senderId = event.sender.id;
+                    const userMessage = event.message.text;
 
-    if (body.object === "page") {
-        for (const entry of body.entry) {
-            const event = entry.messaging[0];
-            if (event.message && event.message.text) {
-                const senderId = event.sender.id;
-                const userMessage = event.message.text;
-
-                // Procesa el mensaje con ChatGPT y responde
-                const gptResponse = await getChatGPTResponse(userMessage);
-                sendMessage(senderId, gptResponse);
+                    // Procesa el mensaje y responde
+                    const gptResponse = await getChatGPTResponse(userMessage);
+                    await sendMessage(senderId, gptResponse);
+                }
             }
+            return res.status(200).send("Evento recibido");
+        } catch (error) {
+            console.error("Error al procesar el evento:", error);
+            return res.sendStatus(500);
         }
-        res.status(200).send("Evento recibido");
-    } else {
-        res.sendStatus(404);
     }
+    return res.sendStatus(404);
 });
 
 // Función para procesar el mensaje con OpenAI ChatGPT
@@ -54,9 +57,14 @@ const getChatGPTResponse = async (userMessage) => {
         const response = await axios.post(
             apiUrl,
             {
-                model: "gpt-4.0-mini", // Puedes cambiarlo según el modelo que uses.
-                messages: [{ role: "system", content: "Eres vyzo, un asistente virtual del Colegio Militar de la nación, solo puedes responder a preguntas relacionadas a la incorporación del Colegio Militar de la Nación en base a la información que puedes sacar de la página del Colegio militar, la cuál es la siguiente: https://www.colegiomilitar.mil.ar/" },
-                  { role: "user", content: userMessage }],
+                model: "gpt-4.0-mini",
+                messages: [
+                    {
+                        role: "system",
+                        content: `Eres un asistente virtual especializado en la incorporación al Colegio Militar de la Nación. Responde únicamente con información disponible en https://www.colegiomilitar.mil.ar/`,
+                    },
+                    { role: "user", content: userMessage },
+                ],
             },
             {
                 headers: {
@@ -65,31 +73,32 @@ const getChatGPTResponse = async (userMessage) => {
                 },
             }
         );
-
-        return response.data.choices[0].message.content;
+        return response.data.choices[0].message.content.trim();
     } catch (error) {
-        console.error("Error al llamar a la API de OpenAI:", error.response.data);
-        return "Lo siento, hubo un problema al procesar tu mensaje. Inténtalo nuevamente.";
+        console.error("Error al llamar a la API de OpenAI:", error.response?.data || error.message);
+        return "Lo siento, no pude procesar tu mensaje. Por favor, intenta nuevamente más tarde.";
     }
 };
 
 // Función para enviar mensajes a Messenger
-const sendMessage = (recipientId, messageText) => {
+const sendMessage = async (recipientId, messageText) => {
     const requestBody = {
         recipient: { id: recipientId },
         message: { text: messageText },
     };
 
-    axios
-        .post(
+    try {
+        const response = await axios.post(
             `https://graph.facebook.com/v12.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`,
             requestBody
-        )
-        .then(response => console.log("Mensaje enviado:", response.data))
-        .catch(error => console.error("Error al enviar el mensaje:", error.response.data));
+        );
+        console.log("Mensaje enviado:", response.data);
+    } catch (error) {
+        console.error("Error al enviar el mensaje:", error.response?.data || error.message);
+    }
 };
 
 // Inicia el servidor
 app.listen(PORT, () => {
-    console.log(`Servidor ejecutándose en el puerto ${PORT}`);
+    console.log(`Servidor en ejecución en el puerto ${PORT}`);
 });
